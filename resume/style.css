@@ -1,0 +1,57 @@
+* {
+    padding: 0;
+    margin: 0;
+    font-family: system-ui;
+}
+
+.sub-heading {
+    font-size: 22px;
+    margin: 0 20px;
+}
+
+.section-element {
+    border-bottom: 1px solid gray;
+    margin: 10px 30px;
+    padding: 20px;
+}
+
+.section-element p {
+    font-size: 16px;
+}
+
+.contact-info {
+    display: flex;
+}
+
+.profile-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.profile-image-container img {
+    width: 100px;
+    aspect-ratio: 1;
+}
+
+.summary-content {
+    font-size: 16px;
+}
+
+.work-experience {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.experience-card {
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.section-element li {
+    margin: 10px 30px;
+}
+

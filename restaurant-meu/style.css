@@ -1,0 +1,38 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Cambria;
+}
+
+header {
+    padding: 50px;
+    font-size: 40px;
+    color: white;
+    background-color: rgb(255, 107, 107);
+}
+
+.menu {
+    padding: 10px;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.section {
+    padding: 10px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.table {
+    
+    border-collapse: collapse;
+    padding: 5px;
+}
+
+.table th, td {
+    padding: 5px;
+    border: 1px solid black;
+}
