@@ -1,0 +1,155 @@
+const cityInput = document.getElementById("city-input")
+const locationTimeElt = document.querySelector(".location-time")
+const weatherElt = document.querySelector(".weather")
+const weatherDetElt = document.querySelector(".weather-details")
+const forecastElt = document.querySelector(".forecast")
+const messageElt = document.getElementById("message")
+const currentWeatherElt = document.querySelector(".current-weather")
+const forecastText = document.getElementById("forecast-text")
+
+
+const week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+
+function getWeatherDescription(code) {
+    const weatherCodes = {
+        0: { text: "Clear Sky", icon: "☀️"},
+        1: { text: "Mainly Clear", icon: "🌤️"},
+        2: { text: "Partly Cloudy", icon: "⛅" },
+        3: { text: "Overcast", icon: "☁️" },
+        45: { text: "Fog", icon: "🌫️" },
+        48: { text: "Depositing Rime Fog", icon: "🌫️" },
+        51: { text: "Light Drizzle", icon: "🌦️" },
+        53: { text: "Moderate Drizzle", icon: "🌦️" },
+        55: { text: "Dense Drizzle", icon: "🌧️" },
+        61: { text: "Slight Rain", icon: "🌦️" },
+        63: { text: "Moderate Rain", icon: "🌧️" },
+        65: { text: "Heavy Rain", icon: "🌧️" },
+        71: { text: "Slight Snowfall", icon: "🌨️" },
+        73: { text: "Moderate Snowfall", icon: "🌨️" },
+        75: { text: "Heavy Snowfall", icon: "❄️" },
+        80: { text: "Slight Rain Showers", icon: "🌦️" },
+        81: { text: "Moderate Rain Showers", icon: "🌧️" },
+        82: { text: "Violent Rain Showers", icon: "⛈️" },
+        95: { text: "Thunderstorm", icon: "⛈️" }
+    };
+
+    return (
+        weatherCodes[code] ||
+        {
+            "text": "Unknown Weather",
+            "icon": "❓"
+        }
+    );
+}
+
+async function getWeather() {
+    const city = cityInput.value
+    currentWeatherElt.classList.add("hidden")
+    forecastText.classList.add("hidden")
+    forecastElt.classList.add("hidden")
+    if (city == "") {
+        messageElt.textContent = "Please Enter a City Name"
+        return
+    }
+
+    const geoURL = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+    messageElt.textContent = "Loading Weather Data..."
+    const response = await fetch(geoURL)
+
+    if (!response.ok) {
+        messageElt.textContent = "Unable to find City"
+        return
+    }
+
+    const data = await response.json()
+
+    if (!data.results || data.results.length == 0) {
+        messageElt.textContent = "City not found"
+        return
+    }
+
+    const location = {
+        longitude: data.results[0].longitude,
+        latitude: data.results[0].latitude,
+        country: data.results[0].country,
+        city: data.results[0].name,
+        state: data.results[0].admin1
+    }
+
+    const weatherURL =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${location.latitude}` +
+        `&longitude=${location.longitude}` +
+        `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code` +
+        `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+        `&timezone=auto` +
+        `&forecast_days=7`;
+    
+    const weatherResponse = await fetch(weatherURL)
+
+    if (!weatherResponse.ok) {
+        messageElt.textContent = "Unable to Load Weather Data"
+        return
+    }
+
+    const weatherData = await weatherResponse.json()
+
+    messageElt.textContent = ""
+
+    displayWeather(location, weatherData)
+}
+
+function displayWeather(location, weatherData) {
+    console.log(location)
+    const date = new Date(weatherData.current.time)
+    const day = week[date.getDay()]
+    const time = date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+    })
+
+    const temperature = Math.round(weatherData.current.temperature_2m)
+    const humidity = weatherData.current.relative_humidity_2m
+    const windSpeed = weatherData.current.wind_speed_10m
+    const weatherDesc = getWeatherDescription(weatherData.current.weather_code)
+
+    locationTimeElt.innerHTML = `
+        <p>${location.city}, ${location.state}, ${location.country}</p>
+        <p>${day}, ${time}</p>
+        <p>${weatherDesc.text}</p>
+    `
+
+    weatherElt.innerHTML = `<p>${weatherDesc.icon} ${temperature}°C</p>`
+
+    weatherDetElt.innerHTML = `
+        <p>Humidity: ${humidity}%</p>
+        <p>Wind Speed: ${windSpeed}km/h</p>
+    `
+    currentWeatherElt.classList.remove("hidden")
+
+    displayForecast(date.getDay(), weatherData.daily, 7)
+}
+
+function displayForecast(dayNo, daily, forecastDays) {
+    forecastElt.innerHTML = ""
+    for (let i = 0; i < forecastDays; i++) {
+        const max = Math.round(daily.temperature_2m_max[i])
+        const min = Math.round(daily.temperature_2m_min[i])
+        const day = week[(dayNo + i + 1) % 7]
+        const code = daily.weather_code[i]
+        const desc = getWeatherDescription(code)
+
+        forecastElt.innerHTML += `
+            <div class="forecast-card">
+                <p class="day">${day}</p>
+                <p class="icon">${desc.icon}</p>
+                <p>${desc.text}</p>
+                <p>${max}°C ${min}°C</p>
+            </div>
+        `
+    }
+    forecastText.classList.remove("hidden")
+
+    forecastElt.classList.remove("hidden")
+}
